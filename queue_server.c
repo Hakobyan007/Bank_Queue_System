@@ -165,28 +165,35 @@ void queue_server(){
                             }
                         }
                         if (current_window_index != -1) {
+                            
                             char reply_text[50];
+                            int best_ticket_index = -1;
+                            int best_priority = -1;
                             for(int next_index = 0; next_index < ticket_count; ++next_index){
                                 int ticket_service_index = queue[next_index].service_index;
+                                
                                 if(queue[next_index].status == 0 && windows[current_window_index].allowed_services[ticket_service_index] == 1){
-                                    queue[next_index].status = 1;
-                                    queue[next_index].window_num = windows[current_window_index].window_number;
-                                    windows[current_window_index].status = 1;
-                                    sprintf(reply_text, "SERVING: %s", queue[next_index].ticket_place);
-                                    ticket_found = 1;
-                                    next_client_index = next_index;
-                                    current_index = next_index;
-                                    break;
+                                    if (queue[next_index].priority > best_priority) {
+                                        best_priority = queue[next_index].priority;
+                                        best_ticket_index = next_index;
+                                    }
                                 }
                             }
-                        
-                            if(ticket_found == 1){
+                            if(best_ticket_index != -1){
+                                queue[best_ticket_index].status = 1;
+                                queue[best_ticket_index].window_num = windows[current_window_index].window_number;
+                                windows[current_window_index].status = 1;
+                                
+                                sprintf(reply_text, "SERVING: %s", queue[best_ticket_index].ticket_place);
+                                ticket_found = 1;
+                                next_client_index = best_ticket_index;
+                                
                                 if(tv_fd > 0){
                                     char tv_text[50] = "";
-                                    sprintf(tv_text, "DISPLAY: Ticket %s -> Window %d", queue[next_client_index].ticket_place,queue[next_client_index].window_num);
-                                    write(tv_fd,tv_text,strlen(tv_text) + 1);
+                                    sprintf(tv_text, "DISPLAY: Ticket %s -> Window %d", queue[next_client_index].ticket_place, queue[next_client_index].window_num);
+                                    write(tv_fd, tv_text, strlen(tv_text) + 1);
                                 }
-                                write(client_sockets[i],reply_text, strlen(reply_text) + 1); 
+                                write(client_sockets[i], reply_text, strlen(reply_text) + 1); 
                             }
                             else if(ticket_found == 0){
                                 char reply_text[20] = "EMPTY";  
@@ -214,6 +221,7 @@ void queue_server(){
                                 sprintf(msg, "DELETE: Ticket %s -> Window %d",queue[curr_ticket_id].ticket_place, queue[curr_ticket_id].window_num);
                                 printf("uxarkum emm: %s\n",msg);
                                 write(tv_fd,msg,strlen(msg) + 1);
+                                queue[curr_ticket_id].status = 2;
                             }
                         }
                     }
@@ -241,11 +249,15 @@ void queue_server(){
                                 write(client_sockets[i],queue_full_msg,strlen(queue_full_msg));
                                 continue;
                             }
-                            new_ticket(buffer,queue[ticket_count].ticket_place,service_queue);
+                            int chosen_priority = (int) (buffer[strlen(buffer) - 1] - '0');
+                            char new_buffer[1024] = {0};
+                            strncpy(new_buffer,buffer,strlen(buffer) - strlen("P-2"));
+                            new_ticket(new_buffer,queue[ticket_count].ticket_place,service_queue);
                             queue[ticket_count].status = 0;
                             queue[ticket_count].service_index = 0;
+                            queue[ticket_count].priority = chosen_priority;
                             for(int s_index = 0; s_index < AVAILABLE_SERVICE_LIST_LENGTH; ++s_index){
-                                if(!strcmp(buffer,service_msgs[s_index])){
+                                if(!strcmp(new_buffer,service_msgs[s_index])){
                                     queue[ticket_count].service_index = s_index;
                                 }
                             }  
