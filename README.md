@@ -26,7 +26,7 @@ Before you begin, ensure you have met the following requirements:
 
 1.  Clone the repository:
     ```bash
-    git clone [https://github.com/your-username/banking-system.git](https://github.com/your-username/banking-system.git)
+    git clone [https://github.com/hakobyan_007/banking-system.git](https://github.com/hakobyan_007/banking-system.git)
     ```
 2.  Navigate into the directory:
     ```bash
@@ -40,14 +40,3 @@ Before you begin, ensure you have met the following requirements:
     # Example if using JS (Node.js):
     npm install
     ```
-
-## 💻 Usage
-
-Run the application using the appropriate command for your OS:
-
-```bash
-# Windows
-.\bank-app.exe
-
-# Linux
-./bank-app
