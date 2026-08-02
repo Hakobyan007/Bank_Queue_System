@@ -40,3 +40,4 @@ Before you begin, ensure you have met the following requirements:
     # Example if using JS (Node.js):
     npm install
     ```
+    sudo apt-get install libmysqlclient-dev
